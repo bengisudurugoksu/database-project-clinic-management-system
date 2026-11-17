@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="icon" style="background:#e3f0ff"><i class="bi bi-calendar2-check-fill" style="color:#1a6ec7"></i></div>
+      <div><div class="value">{{ summary.total_appointments }}</div><div class="label">Total Appointments</div></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="icon" style="background:#e6f9f0"><i class="bi bi-door-open-fill" style="color:#1a9e5e"></i></div>
+      <div><div class="value">{{ summary.available_rooms }}</div><div class="label">Available Rooms</div></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="icon" style="background:#fff3cd"><i class="bi bi-person-badge-fill" style="color:#856404"></i></div>
+      <div><div class="value">{{ summary.doctors_no_appt }}</div><div class="label">Doctors Without Appt</div></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="icon" style="background:#f3e8ff"><i class="bi bi-receipt" style="color:#6f42c1"></i></div>
+      <div><div class="value">{{ summary.appts_without_bill }}</div><div class="label">Appts Without Bill</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  {# ── INNER JOIN ─────────────────────────────────────────────────────────── #}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+          <div>Doctor Schedule</div>
+          <small class="text-muted">Only appointments with a matched doctor <em>and</em> patient — no NULLs on either side.</small>
+        </div>
+        <span class="badge bg-success">INNER JOIN</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Patient</th>
+                <th>Blood</th>
+                <th>Doctor</th>
+                <th>Specialty</th>
+                <th>Department</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in inner_join_rows %}
+              <tr>
+                <td>{{ row.appointment_date }}</td>
+                <td>{{ row.appointment_time }}</td>
+                <td>{{ row.patient_name }}</td>
+                <td><span class="badge bg-light text-dark border">{{ row.blood_type or '—' }}</span></td>
+                <td>{{ row.doctor_name }}</td>
+                <td>{{ row.specialty }}</td>
+                <td>{{ row.department_name or '—' }}</td>
+                <td><span class="badge badge-{{ row.status }}">{{ row.status }}</span></td>
+              </tr>
+              {% else %}
+              <tr><td colspan="8" class="text-center text-muted py-4">No appointments found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── LEFT OUTER JOIN ────────────────────────────────────────────────────── #}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+          <div>Room Availability</div>
+          <small class="text-muted">All rooms are shown — available rooms have no patient on the right side (NULL).</small>
+        </div>
+        <span class="badge bg-warning text-dark">LEFT OUTER JOIN</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Room</th>
+                <th>Type</th>
+                <th>Capacity</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Current Patient</th>
+                <th>Check-in Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in left_join_rows %}
+              <tr>
+                <td><strong>{{ row.room_number }}</strong></td>
+                <td>{{ row.room_type }}</td>
+                <td>{{ row.capacity }}</td>
+                <td>{{ row.department_name or '—' }}</td>
+                <td>
+                  {% if row.is_available %}
+                    <span class="badge badge-completed">Available</span>
+                  {% else %}
+                    <span class="badge badge-cancelled">Occupied</span>
+                  {% endif %}
+                </td>
+                <td>{{ row.current_patient_name or '<span class="text-muted">— (NULL)</span>' | safe }}</td>
+                <td>{{ row.check_in_date or '—' }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7" class="text-center text-muted py-4">No rooms found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── RIGHT OUTER JOIN ───────────────────────────────────────────────────── #}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+          <div>Doctor Appointment Coverage</div>
+          <small class="text-muted">Every doctor is shown — doctors with no appointments have NULL appointment columns.</small>
+        </div>
+        <span class="badge bg-primary">RIGHT OUTER JOIN</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Doctor</th>
+                <th>Specialty</th>
+                <th>Appt #</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Patient</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in right_join_rows %}
+              <tr>
+                <td>{{ row.doctor_name }}</td>
+                <td>{{ row.specialty }}</td>
+                <td>{{ row.appointment_id or '<span class="text-muted">— (NULL)</span>' | safe }}</td>
+                <td>{{ row.appointment_date or '—' }}</td>
+                <td>{{ row.appointment_time or '—' }}</td>
+                <td>
+                  {% if row.status %}
+                    <span class="badge badge-{{ row.status }}">{{ row.status }}</span>
+                  {% else %}
+                    <span class="badge bg-light text-muted">no appointment</span>
+                  {% endif %}
+                </td>
+                <td>{{ row.patient_name or '—' }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7" class="text-center text-muted py-4">No rows found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── FULL OUTER JOIN ────────────────────────────────────────────────────── #}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+          <div>Appointment–Billing Reconciliation</div>
+          <small class="text-muted">Appointments and billing rows joined on both sides — all three status branches visible.</small>
+        </div>
+        <span class="badge bg-dark">FULL OUTER JOIN</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Appt #</th>
+                <th>Appt Date</th>
+                <th>Appt Status</th>
+                <th>Patient</th>
+                <th>Bill #</th>
+                <th>Amount</th>
+                <th>Payment</th>
+                <th>Report Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in full_join_rows %}
+              <tr>
+                <td>{{ row.appointment_id or '<span class="text-muted">— (NULL)</span>' | safe }}</td>
+                <td>{{ row.appointment_date or '—' }}</td>
+                <td>{% if row.appointment_status %}<span class="badge badge-{{ row.appointment_status }}">{{ row.appointment_status }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td>{{ row.patient_name or '—' }}</td>
+                <td>{{ row.billing_id or '—' }}</td>
+                <td>{% if row.amount is not none %}${{ "%.2f"|format(row.amount) }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td>{% if row.payment_status %}<span class="badge badge-{{ row.payment_status }}">{{ row.payment_status }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td><span class="badge bg-secondary">{{ row.report_status }}</span></td>
+              </tr>
+              {% else %}
+              <tr><td colspan="8" class="text-center text-muted py-4">No rows found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Inheritance / Specialisation ───────────────────────────────────────── #}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+          <div>Person Specialization</div>
+          <small class="text-muted">Supertype rows mapped to doctor, nurse, patient, and staff subtypes.</small>
+        </div>
+        <span class="badge bg-info text-dark">Inheritance (LEFT JOIN × 4)</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Person</th>
+                <th>Type</th>
+                <th>Doctor ID</th>
+                <th>Nurse ID</th>
+                <th>Patient ID</th>
+                <th>Staff ID</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in inheritance_rows %}
+              <tr>
+                <td>{{ row.first_name }} {{ row.last_name }}</td>
+                <td>{{ row.person_type }}</td>
+                <td>{{ row.doctor_id or '—' }}</td>
+                <td>{{ row.nurse_id or '—' }}</td>
+                <td>{{ row.patient_id or '—' }}</td>
+                <td>{{ row.staff_id or '—' }}</td>
+                <td><span class="badge bg-secondary">{{ row.subtype_status }}</span></td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7" class="text-center text-muted py-4">No Person supertype rows found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

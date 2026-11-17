@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Nurses{% endblock %}
+{% block page_title %}Nurses{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <span>All Nurses</span>
+    {% if session.get('role') == 'admin' %}
+    <a href="{{ url_for('nurses.add_nurse') }}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus-fill"></i> Add Nurse</a>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Name</th><th>Department</th><th>Phone</th><th>Email</th></tr>
+      </thead>
+      <tbody>
+        {% for n in nurses %}
+        <tr>
+          <td><strong>{{ n.first_name }} {{ n.last_name }}</strong></td>
+          <td>{{ n.department_name or '—' }}</td>
+          <td>{{ n.phone or '—' }}</td>
+          <td>{{ n.email or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted py-4">No nurses yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

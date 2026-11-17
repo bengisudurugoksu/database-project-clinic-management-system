@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Rooms{% endblock %}
+{% block page_title %}Rooms{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-building-fill me-2" style="color:#f59e0b"></i>All Rooms</span>
+    {% if session.get('role') == 'admin' %}
+    <a href="{{ url_for('rooms.add_room') }}" class="btn btn-primary btn-sm"><i class="bi bi-building-add me-1"></i>Add Room</a>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr><th>Room No.</th><th>Type</th><th>Capacity</th><th>Department</th><th>Status</th><th>Patient</th><th>Check-in</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for r in rooms %}
+        <tr>
+          <td><strong>{{ r.room_number }}</strong></td>
+          <td>{{ r.room_type }}</td>
+          <td>{{ r.capacity }}</td>
+          <td>{{ r.department_name or '—' }}</td>
+          <td>
+            {% if r.is_available %}
+              <span class="badge badge-completed">Available</span>
+            {% else %}
+              <span class="badge badge-cancelled">Occupied</span>
+            {% endif %}
+          </td>
+          <td>{{ r.current_patient_name or '—' }}</td>
+          <td class="text-muted" style="font-size:0.85rem">{{ r.check_in_date or '—' }}</td>
+          <td>
+            {% if session.get('role') in ['admin','nurse'] and not r.is_available and r.assignment_id %}
+            <button class="btn btn-sm btn-outline-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#dischargeModal{{ r.assignment_id }}">
+              <i class="bi bi-box-arrow-right"></i> Discharge
+            </button>
+
+            <div class="modal fade" id="dischargeModal{{ r.assignment_id }}" tabindex="-1">
+              <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h6 class="modal-title">Discharge Patient</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body small">
+                    Discharge <strong>{{ r.current_patient_name }}</strong> from Room <strong>{{ r.room_number }}</strong>?
+                    <div class="text-muted mt-1">This will mark the room as available.</div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="POST" action="{{ url_for('rooms.discharge_patient', assignment_id=r.assignment_id) }}">
+                      <button type="submit" class="btn btn-sm btn-danger">
+                        <i class="bi bi-box-arrow-right"></i> Confirm Discharge
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr class="empty-row"><td colspan="8" class="text-center text-muted"><i class="bi bi-building empty-icon"></i>No rooms yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

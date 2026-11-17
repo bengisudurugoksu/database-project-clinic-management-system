@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Admit Patient{% endblock %}
+{% block page_title %}Admit Patient{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header bg-white">
+        <strong>Atomic Transaction #1 — Patient Admission</strong>
+        <div class="text-muted" style="font-size:0.8rem">
+          Assigns a room AND creates an initial appointment in a single transaction.
+          If either step fails, both are rolled back.
+        </div>
+      </div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Patient *</label>
+              <select name="patient_id" class="form-select" required>
+                <option value="">— Select Patient —</option>
+                {% for p in patients %}
+                <option value="{{ p.patient_id }}">{{ p.first_name }} {{ p.last_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Assign Room *</label>
+              <select name="room_id" class="form-select" required>
+                <option value="">— Available Rooms —</option>
+                {% for r in rooms %}
+                <option value="{{ r.room_id }}">{{ r.room_number }} ({{ r.room_type }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Attending Doctor *</label>
+              <select name="doctor_id" class="form-select" required>
+                <option value="">— Select Doctor —</option>
+                {% for d in doctors %}
+                <option value="{{ d.doctor_id }}">Dr. {{ d.first_name }} {{ d.last_name }} — {{ d.specialty }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <div class="alert alert-info py-2 small mb-0">
+                <i class="bi bi-info-circle"></i>
+                Room is assigned <strong>from today</strong> until the patient is discharged.
+                Set the date &amp; time below for the <strong>first doctor consultation</strong>.
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">First Consultation Date *</label>
+              <input type="date" name="appointment_date" class="form-control" required
+                     min="{{ now.strftime('%Y-%m-%d') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Consultation Time *</label>
+              <input type="time" name="appointment_time" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notes</label>
+              <textarea name="notes" class="form-control" rows="2">Admission appointment</textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-shield-check"></i> Admit Patient (Atomic)
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card workflow-card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0">How this transaction works</h6>
+          <span class="course-badge">Atomic + Locking</span>
+        </div>
+        <div class="small text-muted">
+          <p><span class="badge bg-primary">BEGIN</span></p>
+          <div class="workflow-step"><code>SELECT Room, Doctor ... FOR UPDATE</code><br>Locks the critical rows before writes.</div>
+          <div class="workflow-step"><code>INSERT INTO RoomAssignment</code><br>Trigger marks room unavailable.</div>
+          <div class="workflow-step"><code>INSERT INTO Appointment</code><br>Creates the first consultation.</div>
+          <p>If both succeed → <span class="badge bg-success">COMMIT</span><br>
+          If either fails → <span class="badge bg-danger">ROLLBACK</span></p>
+          <hr>
+          <p class="mb-0">This guarantees a patient is never assigned to a room without a corresponding appointment, and never has an appointment without a room.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

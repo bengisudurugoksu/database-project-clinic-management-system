@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Add Doctor{% endblock %}
+{% block page_title %}Add Doctor{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px">
+  <div class="card-header bg-white">New Doctor</div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">First Name *</label>
+          <input type="text" name="first_name" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Last Name *</label>
+          <input type="text" name="last_name" class="form-control" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Specialty *</label>
+          <input type="text" name="specialty" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Department</label>
+          <select name="department_id" class="form-select">
+            <option value="">— None —</option>
+            {% for dept in departments %}
+            <option value="{{ dept.department_id }}">{{ dept.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Save Doctor</button>
+          <a href="{{ url_for('doctors.list_doctors') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Create User{% endblock %}
+{% block page_title %}Create User Account{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px">
+  <div class="card-header bg-white">New User</div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Username *</label>
+          <input type="text" name="username" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Password *</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Role *</label>
+          <select name="role" class="form-select" id="roleSelect" required>
+            <option value="">— Select Role —</option>
+            <option value="admin">Admin</option>
+            <option value="doctor">Doctor</option>
+            <option value="nurse">Nurse</option>
+            <option value="billing_staff">Billing Staff</option>
+            <option value="patient">Patient</option>
+          </select>
+        </div>
+
+        <!-- Link to existing person records -->
+        <div class="col-12" id="doctorField" style="display:none">
+          <label class="form-label">Link to Doctor</label>
+          <select name="doctor_id" class="form-select">
+            <option value="">— None —</option>
+            {% for d in doctors %}
+            <option value="{{ d.doctor_id }}">Dr. {{ d.first_name }} {{ d.last_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12" id="nurseField" style="display:none">
+          <label class="form-label">Link to Nurse</label>
+          <select name="nurse_id" class="form-select">
+            <option value="">— None —</option>
+            {% for n in nurses %}
+            <option value="{{ n.nurse_id }}">{{ n.first_name }} {{ n.last_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12" id="patientField" style="display:none">
+          <label class="form-label">Link to Patient</label>
+          <select name="patient_id" class="form-select">
+            <option value="">— None —</option>
+            {% for p in patients %}
+            <option value="{{ p.patient_id }}">{{ p.first_name }} {{ p.last_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12" id="staffField" style="display:none">
+          <label class="form-label">Link to Staff</label>
+          <select name="staff_id" class="form-select">
+            <option value="">— None —</option>
+            {% for s in staff %}
+            <option value="{{ s.staff_id }}">{{ s.first_name }} {{ s.last_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Create User</button>
+          <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById("roleSelect").addEventListener("change", function() {
+    document.getElementById("doctorField").style.display  = this.value === "doctor"        ? "" : "none";
+    document.getElementById("nurseField").style.display   = this.value === "nurse"         ? "" : "none";
+    document.getElementById("patientField").style.display = this.value === "patient"       ? "" : "none";
+    document.getElementById("staffField").style.display   = this.value === "billing_staff" ? "" : "none";
+  });
+</script>
+{% endblock %}

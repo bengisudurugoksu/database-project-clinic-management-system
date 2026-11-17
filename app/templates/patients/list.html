@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Patients{% endblock %}
+{% block page_title %}Patients{% endblock %}
+
+{% block extra_head %}
+<style>
+  .search-wrap { position: relative; max-width: 280px; }
+  .search-wrap i { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem; pointer-events: none; }
+  .search-wrap input { padding-left: 2.1rem; }
+  tr.hidden-row { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
+    <span><i class="bi bi-people-fill me-2" style="color:#3b82f6"></i>All Patients
+      <span class="badge bg-light text-muted ms-1" style="font-weight:500" id="patient-count">{{ patients|length }}</span>
+    </span>
+    <div class="d-flex align-items-center gap-2">
+      <div class="search-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" id="patient-search" class="form-control form-control-sm" placeholder="Search patients…">
+      </div>
+      {% if session.get('role') in ['admin','nurse'] %}
+      <a href="{{ url_for('patients.add_patient') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-person-plus-fill me-1"></i>Add Patient
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0" id="patient-table">
+      <thead>
+        <tr>
+          <th style="width:40px"></th>
+          <th>Name</th>
+          <th>Date of Birth</th>
+          <th>Gender</th>
+          <th>Blood Type</th>
+          <th>Phone</th>
+          <th>Registered</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in patients %}
+        <tr data-name="{{ (p.first_name ~ ' ' ~ p.last_name)|lower }}">
+          <td>
+            {% set colors = ['linear-gradient(135deg,#3b82f6,#1d4ed8)','linear-gradient(135deg,#10b981,#065f46)','linear-gradient(135deg,#f59e0b,#92400e)','linear-gradient(135deg,#6366f1,#4338ca)','linear-gradient(135deg,#e94560,#9b1c3e)'] %}
+            {% set ci = loop.index0 % 5 %}
+            <div class="avatar-initials" style="background:{{ colors[ci] }};color:#fff;">
+              {{ p.first_name[0] }}{{ p.last_name[0] }}
+            </div>
+          </td>
+          <td>
+            <span class="fw-600" style="font-weight:600">{{ p.first_name }} {{ p.last_name }}</span>
+            <div class="text-muted" style="font-size:0.73rem">#{{ p.patient_id }}</div>
+          </td>
+          <td class="text-muted">{{ p.date_of_birth }}</td>
+          <td class="text-muted">{{ 'Male' if p.gender == 'M' else 'Female' if p.gender == 'F' else 'Other' if p.gender == 'O' else '—' }}</td>
+          <td>
+            {% if p.blood_type %}
+              <span class="badge" style="background:#fef2f2;color:#b91c1c;">{{ p.blood_type }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-muted">{{ p.phone or '—' }}</td>
+          <td class="text-muted" style="font-size:0.8rem">{{ p.registered_at.strftime('%Y-%m-%d') if p.registered_at else '—' }}</td>
+          <td>
+            <a href="{{ url_for('patients.patient_detail', patient_id=p.patient_id) }}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-eye me-1"></i>View
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr class="empty-row">
+          <td colspan="8" class="text-center text-muted">
+            <i class="bi bi-people empty-icon"></i>No patients registered yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const searchInput = document.getElementById('patient-search');
+  const countEl     = document.getElementById('patient-count');
+  searchInput.addEventListener('input', function () {
+    const q = this.value.toLowerCase().trim();
+    let visible = 0;
+    document.querySelectorAll('#patient-table tbody tr[data-name]').forEach(row => {
+      const match = !q || row.dataset.name.includes(q);
+      row.classList.toggle('hidden-row', !match);
+      if (match) visible++;
+    });
+    countEl.textContent = visible;
+  });
+</script>
+{% endblock %}

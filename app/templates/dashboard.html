@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Hospital MS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  {% if role == "patient" %}
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)"><i class="bi bi-calendar2-check-fill"></i></div>
+      <div><div class="stat-value">{{ stats.my_appointments }}</div><div class="stat-label">My Appointments</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#e94560,#9b1c3e)"><i class="bi bi-calendar-event-fill"></i></div>
+      <div><div class="stat-value">{{ stats.appointments_today }}</div><div class="stat-label">Today</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#065f46)"><i class="bi bi-receipt-cutoff"></i></div>
+      <div><div class="stat-value">${{ "%.0f"|format(stats.total_billed) }}</div><div class="stat-label">Total Billed</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#f59e0b,#92400e)"><i class="bi bi-exclamation-circle-fill"></i></div>
+      <div><div class="stat-value">${{ "%.0f"|format(stats.outstanding) }}</div><div class="stat-label">Outstanding</div></div>
+    </div>
+  </div>
+
+  {% elif role == "doctor" %}
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)"><i class="bi bi-people-fill"></i></div>
+      <div><div class="stat-value">{{ stats.my_patients }}</div><div class="stat-label">My Patients</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#e94560,#9b1c3e)"><i class="bi bi-calendar2-check-fill"></i></div>
+      <div><div class="stat-value">{{ stats.appointments_today }}</div><div class="stat-label">Appointments Today</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#065f46)"><i class="bi bi-calendar-check-fill"></i></div>
+      <div><div class="stat-value">{{ stats.total_appointments }}</div><div class="stat-label">Total Appointments</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#f59e0b,#92400e)"><i class="bi bi-building-fill"></i></div>
+      <div><div class="stat-value">{{ stats.available_rooms }}</div><div class="stat-label">Available Rooms</div></div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)"><i class="bi bi-people-fill"></i></div>
+      <div><div class="stat-value">{{ stats.patients }}</div><div class="stat-label">Total Patients</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#065f46)"><i class="bi bi-person-badge-fill"></i></div>
+      <div><div class="stat-value">{{ stats.doctors }}</div><div class="stat-label">Doctors</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#e94560,#9b1c3e)"><i class="bi bi-calendar2-check-fill"></i></div>
+      <div><div class="stat-value">{{ stats.appointments_today }}</div><div class="stat-label">Appointments Today</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#f59e0b,#92400e)"><i class="bi bi-building-fill"></i></div>
+      <div><div class="stat-value">{{ stats.available_rooms }}</div><div class="stat-label">Available Rooms</div></div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <!-- Today's Appointments -->
+  <div class="col-xl-7">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-calendar2-check me-2 text-primary"></i>Today's Appointments</span>
+        <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for a in todays %}
+            <tr>
+              <td>
+                <span style="font-size:0.78rem;font-weight:600;background:#f1f5f9;padding:0.2rem 0.5rem;border-radius:5px;font-variant-numeric:tabular-nums;">
+                  {{ a.appointment_time }}
+                </span>
+              </td>
+              <td><span class="fw-500">{{ a.patient_name }}</span></td>
+              <td class="text-muted">Dr. {{ a.doctor_name }}</td>
+              <td><span class="badge badge-{{ a.status }}">{{ a.status }}</span></td>
+            </tr>
+            {% else %}
+            <tr class="empty-row">
+              <td colspan="4" class="text-center text-muted">
+                <i class="bi bi-calendar-x empty-icon"></i>No appointments scheduled for today.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="col-xl-5 d-flex flex-column gap-3">
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-lightning-fill me-2" style="color:#f59e0b"></i>Quick Actions</div>
+      <div class="card-body d-flex flex-wrap gap-2">
+        {% if session.get('role') in ['admin','nurse'] %}
+        <a href="{{ url_for('patients.add_patient') }}" class="btn btn-primary btn-sm">
+          <i class="bi bi-person-plus-fill me-1"></i>New Patient
+        </a>
+        <a href="{{ url_for('appointments.add_appointment') }}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-calendar-plus me-1"></i>New Appointment
+        </a>
+        {% endif %}
+        {% if session.get('role') in ['admin','billing_staff'] %}
+        <a href="{{ url_for('billing.add_billing') }}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-plus-circle me-1"></i>New Bill
+        </a>
+        {% endif %}
+        {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('rooms.add_room') }}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-building-add me-1"></i>Add Room
+        </a>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-person-plus me-1"></i>Create User
+        </a>
+        {% endif %}
+        {% if session.get('role') in ['admin','doctor','nurse','billing_staff'] %}
+        <a href="{{ url_for('reports.list_reports') }}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-bar-chart-fill me-1"></i>Reports
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Department Stats -->
+    {% if dept_stats %}
+    <div class="card">
+      <div class="card-header"><i class="bi bi-diagram-3-fill me-2" style="color:#6366f1"></i>Departments</div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead><tr><th>Department</th><th>Doctors</th><th>Rooms</th><th>Occupied</th></tr></thead>
+          <tbody>
+            {% for d in dept_stats %}
+            <tr>
+              <td>
+                <span style="font-size:0.8rem;font-weight:600;">{{ d.department_name }}</span>
+              </td>
+              <td class="text-muted">{{ d.doctor_count }}</td>
+              <td class="text-muted">{{ d.room_count }}</td>
+              <td>
+                {% if d.occupied_rooms > 0 %}
+                  <span class="badge badge-unpaid">{{ d.occupied_rooms }}</span>
+                {% else %}
+                  <span class="text-muted">0</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

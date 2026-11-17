@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Add Patient{% endblock %}
+{% block page_title %}Add Patient{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:700px">
+  <div class="card-header bg-white">New Patient</div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">First Name *</label>
+          <input type="text" name="first_name" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Last Name *</label>
+          <input type="text" name="last_name" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Date of Birth *</label>
+          <input type="date" name="date_of_birth" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Gender</label>
+          <select name="gender" class="form-select">
+            <option value="">—</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+            <option value="O">Other</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Blood Type</label>
+          <select name="blood_type" class="form-select">
+            <option value="">—</option>
+            {% for bt in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}
+            <option value="{{ bt }}">{{ bt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Address</label>
+          <textarea name="address" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Emergency Contact Name</label>
+          <input type="text" name="emergency_contact_name" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Emergency Contact Phone</label>
+          <input type="text" name="emergency_contact_phone" class="form-control">
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Save Patient</button>
+          <a href="{{ url_for('patients.list_patients') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

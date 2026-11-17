@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}{{ patient.first_name }} {{ patient.last_name }}{% endblock %}
+{% block page_title %}Patient Detail{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+
+  <!-- Profile card -->
+  <div class="col-lg-4 col-xl-3">
+    <div class="card overflow-hidden">
+      <!-- gradient banner -->
+      <div style="height:72px; background:linear-gradient(135deg,#1d4ed8,#6366f1);"></div>
+      <div class="card-body pt-0 text-center" style="margin-top:-36px">
+        <div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,#e94560,#9b1c3e);display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;font-size:1.7rem;font-weight:700;color:#fff;border:3px solid #fff;box-shadow:0 4px 14px rgba(233,69,96,0.35);">
+          {{ patient.first_name[0] }}{{ patient.last_name[0] }}
+        </div>
+        <div style="font-size:1.05rem;font-weight:700;color:var(--text)">{{ patient.first_name }} {{ patient.last_name }}</div>
+        <div class="text-muted" style="font-size:0.78rem;margin-bottom:1rem">Patient #{{ patient.patient_id }}</div>
+
+        {% if patient.blood_type %}
+        <span class="badge mb-3" style="background:#fef2f2;color:#b91c1c;font-size:0.8rem;padding:0.35em 0.75em;">
+          <i class="bi bi-droplet-fill me-1"></i>{{ patient.blood_type }}
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Info rows -->
+      <div style="border-top:1px solid var(--border);padding:1rem 1.25rem">
+        {% macro info_row(icon, label, val) %}
+        <div style="display:flex;align-items:flex-start;gap:0.6rem;margin-bottom:0.8rem">
+          <i class="bi bi-{{ icon }}" style="color:var(--muted);margin-top:0.1rem;font-size:0.85rem;width:14px;flex-shrink:0"></i>
+          <div>
+            <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600">{{ label }}</div>
+            <div style="font-size:0.82rem;color:var(--text);font-weight:500">{{ val }}</div>
+          </div>
+        </div>
+        {% endmacro %}
+
+        {{ info_row('calendar3', 'Date of Birth', patient.date_of_birth) }}
+        {{ info_row('person', 'Gender', 'Male' if patient.gender == 'M' else 'Female' if patient.gender == 'F' else 'Other' if patient.gender == 'O' else '—') }}
+        {{ info_row('telephone', 'Phone', patient.phone or '—') }}
+        {{ info_row('envelope', 'Email', patient.email or '—') }}
+        {{ info_row('geo-alt', 'Address', patient.address or '—') }}
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding:1rem 1.25rem">
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:700;margin-bottom:0.6rem">Emergency Contact</div>
+        {% macro info_row2(icon, val) %}
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
+          <i class="bi bi-{{ icon }}" style="color:var(--muted);font-size:0.8rem;width:14px"></i>
+          <span style="font-size:0.82rem;color:var(--text)">{{ val }}</span>
+        </div>
+        {% endmacro %}
+        {{ info_row2('person-exclamation', patient.emergency_contact_name or '—') }}
+        {{ info_row2('telephone', patient.emergency_contact_phone or '—') }}
+      </div>
+
+      <!-- Financial summary -->
+      <div style="border-top:1px solid var(--border);padding:1rem 1.25rem">
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:700;margin-bottom:0.75rem">Financial Summary</div>
+        <div class="d-flex justify-content-between mb-2">
+          <span style="font-size:0.8rem;color:var(--muted)">Age <span style="font-size:0.65rem">(get_patient_age)</span></span>
+          <span style="font-size:0.82rem;font-weight:600">{{ patient_age or '—' }} yrs</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span style="font-size:0.8rem;color:var(--muted)">Total Billed <span style="font-size:0.65rem">(calculate_patient_bill)</span></span>
+          <span style="font-size:0.82rem;font-weight:600">${{ "%.2f"|format(total_bill) }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span style="font-size:0.8rem;color:var(--muted)">Outstanding <span style="font-size:0.65rem">(calculate_outstanding_bill)</span></span>
+          <span style="font-size:0.82rem;font-weight:700;color:{% if outstanding_bill > 0 %}#b91c1c{% else %}#15803d{% endif %}">
+            ${{ "%.2f"|format(outstanding_bill) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="col-lg-8 col-xl-9 d-flex flex-column gap-3">
+
+    <!-- Appointment history -->
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-clock-history me-2" style="color:#6366f1"></i>Full Appointment History</span>
+        <span class="course-badge">get_patient_appointments_full()</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr><th>Date</th><th>Doctor</th><th>Dept</th><th>Diagnosis</th><th>Medications</th><th>Billed</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {% for h in full_history %}
+              <tr>
+                <td>
+                  <span style="font-weight:600">{{ h.appointment_date }}</span>
+                  <div class="text-muted" style="font-size:0.73rem">{{ h.appointment_time }}</div>
+                </td>
+                <td>
+                  <span style="font-weight:600">Dr. {{ h.doctor_name }}</span>
+                  <div class="text-muted" style="font-size:0.73rem">{{ h.specialty }}</div>
+                </td>
+                <td class="text-muted" style="font-size:0.8rem">{{ h.department_name }}</td>
+                <td style="font-size:0.83rem;max-width:160px">{{ h.diagnosis }}</td>
+                <td style="font-size:0.78rem;color:var(--muted);max-width:130px">{{ h.medications }}</td>
+                <td style="font-weight:600">${{ "%.2f"|format(h.billed_amount) }}</td>
+                <td><span class="badge badge-{{ h.status }}">{{ h.status }}</span></td>
+              </tr>
+              {% else %}
+              <tr class="empty-row">
+                <td colspan="7" class="text-center text-muted">
+                  <i class="bi bi-calendar-x empty-icon"></i>No appointment history yet.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Billing -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-receipt-cutoff me-2" style="color:#10b981"></i>Billing</div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Date</th><th>Amount</th><th>Status</th><th>Description</th></tr></thead>
+          <tbody>
+            {% for b in billing %}
+            <tr>
+              <td class="text-muted">{{ b.billing_date }}</td>
+              <td style="font-weight:600">${{ "%.2f"|format(b.amount) }}</td>
+              <td><span class="badge badge-{{ b.payment_status }}">{{ b.payment_status }}</span></td>
+              <td class="text-muted" style="font-size:0.82rem">{{ b.description or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr class="empty-row">
+              <td colspan="4" class="text-center text-muted">
+                <i class="bi bi-receipt empty-icon"></i>No billing records.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

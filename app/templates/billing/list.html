@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Billing{% endblock %}
+{% block page_title %}Billing{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-receipt-cutoff me-2" style="color:#10b981"></i>All Bills</span>
+    <a href="{{ url_for('billing.add_billing') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-1"></i>New Bill</a>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr><th>Patient</th><th>Amount</th><th>Status</th><th>Billing Date</th><th>Payment Date</th><th>Description</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for b in bills %}
+        <tr>
+          <td>
+            <span style="font-weight:600">{{ b.patient_name }}</span>
+            <div class="text-muted" style="font-size:0.73rem">Bill #{{ b.billing_id }}</div>
+          </td>
+          <td style="font-weight:700;font-size:0.95rem">${{ "%.2f"|format(b.amount) }}</td>
+          <td><span class="badge badge-{{ b.payment_status }}">{{ b.payment_status }}</span></td>
+          <td class="text-muted">{{ b.billing_date }}</td>
+          <td class="text-muted">{{ b.payment_date or '—' }}</td>
+          <td class="text-muted" style="font-size:0.8rem;max-width:160px">{{ b.description or '—' }}</td>
+          <td>
+            {% if b.payment_status != 'paid' %}
+            <form method="POST" action="{{ url_for('billing.mark_paid', billing_id=b.billing_id) }}">
+              <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-circle me-1"></i>Mark Paid</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr class="empty-row">
+          <td colspan="7" class="text-center text-muted">
+            <i class="bi bi-receipt empty-icon"></i>No billing records yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

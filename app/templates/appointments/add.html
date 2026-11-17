@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Schedule Appointment{% endblock %}
+{% block page_title %}Schedule Appointment{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px">
+  <div class="card-header bg-white">New Appointment</div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Patient *</label>
+          <select name="patient_id" class="form-select" required>
+            <option value="">— Select Patient —</option>
+            {% for p in patients %}
+            <option value="{{ p.patient_id }}">{{ p.first_name }} {{ p.last_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Doctor *</label>
+          <select name="doctor_id" class="form-select" required>
+            <option value="">— Select Doctor —</option>
+            {% for d in doctors %}
+            <option value="{{ d.doctor_id }}">Dr. {{ d.first_name }} {{ d.last_name }} — {{ d.specialty }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Date *</label>
+          <input type="date" name="appointment_date" class="form-control" required
+                 min="{{ now.strftime('%Y-%m-%d') }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Time *</label>
+          <input type="time" name="appointment_time" class="form-control" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Notes</label>
+          <textarea name="notes" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Schedule</button>
+          <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

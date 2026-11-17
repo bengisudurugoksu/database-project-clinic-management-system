@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Transfer Patient{% endblock %}
+{% block page_title %}Transfer Patient{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header bg-white">
+        <strong>Atomic Transaction #3 — Room Transfer</strong>
+        <div class="text-muted" style="font-size:0.8rem">
+          Closes the current room assignment AND opens a new one in a single transaction.
+          Patient is never left without a room or double-assigned.
+        </div>
+      </div>
+      <div class="card-body">
+        {% if not admitted %}
+          <p class="text-muted">No patients are currently admitted.</p>
+        {% else %}
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Patient to Transfer *</label>
+              <select name="assignment_id" class="form-select" required>
+                <option value="">— Select Patient —</option>
+                {% for a in admitted %}
+                <option value="{{ a.assignment_id }}">
+                  {{ a.patient_name }} (Room {{ a.current_room }})
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Transfer to Room *</label>
+              <select name="new_room_id" class="form-select" required>
+                <option value="">— Available Rooms —</option>
+                {% for r in available_rooms %}
+                <option value="{{ r.room_id }}">{{ r.room_number }} ({{ r.room_type }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-shield-check"></i> Transfer Patient (Atomic)
+              </button>
+            </div>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card workflow-card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0">How this transaction works</h6>
+          <span class="course-badge">Atomic + Locking</span>
+        </div>
+        <div class="small text-muted">
+          <p><span class="badge bg-primary">BEGIN</span></p>
+          <div class="workflow-step"><code>SELECT RoomAssignment, Room ... FOR UPDATE</code><br>Locks the current assignment and destination room.</div>
+          <div class="workflow-step"><code>UPDATE RoomAssignment SET is_active=FALSE</code><br>Trigger frees the old room.</div>
+          <div class="workflow-step"><code>INSERT INTO RoomAssignment</code><br>Trigger reserves the new room.</div>
+          <p>If both succeed → <span class="badge bg-success">COMMIT</span><br>
+          If either fails → <span class="badge bg-danger">ROLLBACK</span></p>
+          <hr>
+          <p class="mb-0">Without atomicity, a crash between steps would leave a patient with no room or two rooms simultaneously.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
